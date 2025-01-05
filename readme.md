@@ -12,7 +12,7 @@ To clone and run this application, you'll need [Git](https://git-scm.com) and [.
 
 ```
 # Clone this repository
-$ git clone https://github.com/btigi/ContentSearchExtended
+$ git clone https://github.com/btigi/mmp
 
 # Go into the repository
 $ cd src
