@@ -110,27 +110,43 @@ namespace mmp
                 {
                     if (waveOut == null || waveOut.PlaybackState == PlaybackState.Stopped)
                     {
+                        // Check if there are more tracks to play
+                        while (currentTrackIndex < playlist.Count)
+                        {
+                            filePath = playlist[currentTrackIndex];
+
+                            // Check if the file exists
+                            if (File.Exists(filePath))
+                            {
+                                // File exists, play it
+                                waveOut = new WaveOutEvent();
+                                audioFileReader = new AudioFileReader(filePath);
+                                waveOut.Init(audioFileReader);
+                                waveOut.Volume = volume;
+                                waveOut.Play();
+
+                                currentSong = Path.GetFileName(filePath);
+                                DisplayCurrentSong();
+                                break;
+                            }
+                            else
+                            {
+                                // File doesn't exist, move to the next track
+                                currentTrackIndex++;
+                            }
+                        }
+
                         if (currentTrackIndex >= playlist.Count)
                         {
                             playMusic = false;
                             continue;
                         }
-
-                        filePath = playlist[currentTrackIndex];
-                        waveOut = new WaveOutEvent();
-                        audioFileReader = new AudioFileReader(filePath);
-                        waveOut.Init(audioFileReader);
-                        waveOut.Volume = volume;
-                        waveOut.Play();
-
-                        currentSong = Path.GetFileName(filePath);
-                        DisplayCurrentSong();
                     }
 
                     while (waveOut != null && (waveOut.PlaybackState == PlaybackState.Playing || waveOut.PlaybackState == PlaybackState.Paused))
                     {
                         Thread.Sleep(100);
-                        //DisplayProgress();
+                        // DisplayProgress();
                     }
 
                     if (waveOut != null && waveOut.PlaybackState == PlaybackState.Stopped)
@@ -147,6 +163,10 @@ namespace mmp
                 }
             }
         }
+
+
+
+
 
         static void StopMusic()
         {
