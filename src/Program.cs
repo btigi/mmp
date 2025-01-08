@@ -1,9 +1,6 @@
 ﻿/*
 Repeat
-Drag / drop file from explorer - allowing editing
-Handle missing file
 Playlist
-  prev, next - better keys
   always show
 Progress?
 */
@@ -25,6 +22,7 @@ namespace mmp
         static string currentSong = "none";
         static float volume = 0.5f;
         static int currentTrackIndex = 0;
+        static RepeatMode RepeatMode;
         static readonly List<string> playlist = [];
         static readonly char[] trimChars = ['"', ' '];
 
@@ -46,7 +44,7 @@ namespace mmp
             filePath = ReadLineWithTabCompletion(string.Empty);
             AddToPlaylist(filePath);
 
-            Thread musicThread = new Thread(PlayMusic);
+            var musicThread = new Thread(PlayMusic);
             musicThread.Start();
 
             while (true)
@@ -106,6 +104,17 @@ namespace mmp
                 else if (key == (ConsoleKey)settings.VolumeDown)
                 {
                     ChangeVolume(-0.1f); // Decrease volume by 10%
+                }
+                else if (key == (ConsoleKey)settings.Repeat)
+                {
+                    RepeatMode = RepeatMode switch
+                    {
+                        RepeatMode.NoRepeat => RepeatMode.RepeatTrack,
+                        RepeatMode.RepeatTrack => RepeatMode.RepeatPlaylist,
+                        RepeatMode.RepeatPlaylist => RepeatMode.NoRepeat,
+                        _ => RepeatMode
+                    };
+                    DisplayCurrentSong();
                 }
             }
         }
@@ -267,7 +276,7 @@ namespace mmp
         {
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 1);
-            Console.Write($"Current: {currentSong}".PadRight(Console.WindowWidth));
+            Console.Write($"Current: {currentSong} Repeat: {RepeatMode}".PadRight(Console.WindowWidth));
             Console.SetCursorPosition(0, currentTop);
         }
 

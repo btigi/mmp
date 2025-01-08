@@ -13,5 +13,6 @@ namespace mmp.Model
         public int TrackNext { get; set; }
         public int TrackPrev { get; set; }
         public int PlayPause { get; set; }
+        public int Repeat { get; set; }        
     }
 }
