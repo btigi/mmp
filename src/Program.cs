@@ -8,6 +8,8 @@ Playlist
 Progress?
 */
 
+using Microsoft.Extensions.Configuration;
+using mmp.Model;
 using NAudio.Wave;
 using System.Text;
 
@@ -28,6 +30,12 @@ namespace mmp
 
         static void Main(string[] args)
         {
+            var builder = new ConfigurationBuilder()
+                            .AddJsonFile($"appsettings.json", true, true);
+            var configuration = builder.Build();
+            var settings = new AppSettings();
+            configuration.Bind(settings);
+
             Console.Title = "My Media Player";
             Console.Clear();
             Console.WriteLine("My Media Player");
@@ -44,19 +52,19 @@ namespace mmp
             while (true)
             {
                 var key = Console.ReadKey(true).Key;
-                if (key == ConsoleKey.S)
+                if (key == (ConsoleKey)settings.Stop)
                 {
                     StopMusic();
                 }
-                else if (key == ConsoleKey.P)
+                else if (key == (ConsoleKey)settings.Play)
                 {
                     StartMusic();
                 }
-                else if (key == ConsoleKey.Spacebar)
+                else if (key == (ConsoleKey)settings.PlayPause)
                 {
                     PauseOrResumeMusic();
                 }
-                else if (key == ConsoleKey.N)
+                else if (key == (ConsoleKey)settings.NewSong)
                 {
                     ClearPlaylistDisplay();
                     Console.SetCursorPosition(0, 4);
@@ -69,7 +77,7 @@ namespace mmp
                     currentTrackIndex = 0;
                     ChangeMusic(newFilePath);
                 }
-                else if (key == ConsoleKey.A)
+                else if (key == (ConsoleKey)settings.AddPlaylist)
                 {
                     ClearPlaylistDisplay();
                     Console.SetCursorPosition(0, 4);
@@ -79,23 +87,23 @@ namespace mmp
                     var newFilePath = ReadLineWithTabCompletion(initialDirectory);
                     AddToPlaylist(newFilePath);
                 }
-                else if (key == ConsoleKey.V)
+                else if (key == (ConsoleKey)settings.ShowPlaylist)
                 {
                     DisplayPlaylist();
                 }
-                else if (key == ConsoleKey.D1)
+                else if (key == (ConsoleKey)settings.TrackPrev)
                 {
                     MoveToPreviousTrack();
                 }
-                else if (key == ConsoleKey.D2)
+                else if (key == (ConsoleKey)settings.TrackNext)
                 {
                     MoveToNextTrack();
                 }
-                else if (key == ConsoleKey.UpArrow)
+                else if (key == (ConsoleKey)settings.VolumeUp)
                 {
                     ChangeVolume(0.1f); // Increase volume by 10%
                 }
-                else if (key == ConsoleKey.DownArrow)
+                else if (key == (ConsoleKey)settings.VolumeDown)
                 {
                     ChangeVolume(-0.1f); // Decrease volume by 10%
                 }
@@ -151,7 +159,6 @@ namespace mmp
 
                     if (waveOut != null && waveOut.PlaybackState == PlaybackState.Stopped)
                     {
-                        currentTrackIndex++;
                         waveOut.Dispose();
                         waveOut = null;
                         DisplayPlaylist(); // Update playlist display when moving to the next song
@@ -163,10 +170,6 @@ namespace mmp
                 }
             }
         }
-
-
-
-
 
         static void StopMusic()
         {
