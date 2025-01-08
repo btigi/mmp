@@ -127,15 +127,12 @@ namespace mmp
                 {
                     if (waveOut == null || waveOut.PlaybackState == PlaybackState.Stopped)
                     {
-                        // Check if there are more tracks to play
                         while (currentTrackIndex < playlist.Count)
                         {
                             filePath = playlist[currentTrackIndex];
 
-                            // Check if the file exists
                             if (File.Exists(filePath))
                             {
-                                // File exists, play it
                                 waveOut = new WaveOutEvent();
                                 audioFileReader = new AudioFileReader(filePath);
                                 waveOut.Init(audioFileReader);
@@ -148,7 +145,6 @@ namespace mmp
                             }
                             else
                             {
-                                // File doesn't exist, move to the next track
                                 currentTrackIndex++;
                             }
                         }
@@ -170,7 +166,25 @@ namespace mmp
                     {
                         waveOut.Dispose();
                         waveOut = null;
-                        DisplayPlaylist(); // Update playlist display when moving to the next song
+
+                        if (RepeatMode == RepeatMode.NoRepeat)
+                        {
+                            currentTrackIndex++;
+                        }
+                        else if (RepeatMode == RepeatMode.RepeatTrack)
+                        {
+                            // Do nothing, replay current track
+                        }
+                        else if (RepeatMode == RepeatMode.RepeatPlaylist && currentTrackIndex == playlist.Count-1)
+                        {
+                            currentTrackIndex = 0;
+                        }
+                        else
+                        {
+                            currentTrackIndex++;
+                        }
+
+                        DisplayPlaylist();
                     }
                 }
                 else
