@@ -1,13 +1,16 @@
 ﻿/*
-Repeat
 Playlist
   always show
 Progress?
+Starting volume
+Handles args to play passed in music
+When adding music if we specify a directory (or a directory then \* ?) just add all supported files (and sub directories...?)
 */
 
 using Microsoft.Extensions.Configuration;
 using mmp.Model;
 using NAudio.Wave;
+using System.Drawing;
 using System.Text;
 
 namespace mmp
@@ -25,6 +28,20 @@ namespace mmp
         static RepeatMode RepeatMode;
         static readonly List<string> playlist = [];
         static readonly char[] trimChars = ['"', ' '];
+        static bool swapped = false;
+
+        static ConsoleColor currentTextForegroundConsoleColour;
+        static ConsoleColor currentTextBackgroundConsoleColour;
+        static ConsoleColor currentSongForegroundConsoleColour;
+        static ConsoleColor currentSongBackgroundConsoleColour;
+        static ConsoleColor volumeTextForegroundConsoleColour;
+        static ConsoleColor volumeTextBackgroundConsoleColour;
+        static ConsoleColor volumeForegroundConsoleColour;
+        static ConsoleColor volumeBackgroundConsoleColour;
+        static ConsoleColor textForegroundConsoleColour;
+        static ConsoleColor textBackgroundConsoleColour;
+        static ConsoleColor playlistForegroundConsoleColour;
+        static ConsoleColor playlistBackgroundConsoleColour;
 
         static void Main(string[] args)
         {
@@ -34,12 +51,69 @@ namespace mmp
             var settings = new AppSettings();
             configuration.Bind(settings);
 
+            var titleForegroundColour = Color.FromName(settings.TitleForegroundColour ?? "Red");
+            var titleForegroundConsoleColour = FromColour(titleForegroundColour);
+
+            var titleBackgroundColour = Color.FromName(settings.TitleBackgroundColour ?? "Black");
+            var titleBackgroundConsoleColour = FromColour(titleBackgroundColour);
+
+            var currentTextForegroundColour = Color.FromName(settings.CurrentTextForegroundColour ?? "White");
+            currentTextForegroundConsoleColour = FromColour(currentTextForegroundColour);
+
+            var currentTextBackgroundColour = Color.FromName(settings.CurrentTextBackgroundColour ?? "Black");
+            currentTextBackgroundConsoleColour = FromColour(currentTextBackgroundColour);
+
+            var currentSongForegroundColour = Color.FromName(settings.CurrentSongForegroundColour ?? "Blue");
+            currentSongForegroundConsoleColour = FromColour(currentSongForegroundColour);
+
+            var currentSongBackgroundColour = Color.FromName(settings.CurrentSongBackgroundColour ?? "Black");
+            currentSongBackgroundConsoleColour = FromColour(currentSongBackgroundColour);
+
+            var volumeTextForegroundColour = Color.FromName(settings.VolumeTextForegroundColour ?? "White");
+            volumeTextForegroundConsoleColour = FromColour(volumeTextForegroundColour);
+
+            var volumeTextBackgroundColour = Color.FromName(settings.VolumeTextBackgroundColour ?? "Black");
+            volumeTextBackgroundConsoleColour = FromColour(volumeTextBackgroundColour);
+
+            var volumeForegroundColour = Color.FromName(settings.VolumeForegroundColour ?? "Blue");
+            volumeForegroundConsoleColour = FromColour(volumeForegroundColour);
+
+            var volumeBackgroundColour = Color.FromName(settings.VolumeBackgroundColour ?? "Black");
+            volumeBackgroundConsoleColour = FromColour(volumeBackgroundColour);
+
+            var textForegroundColour = Color.FromName(settings.TextForegroundColour ?? "White");
+            textForegroundConsoleColour = FromColour(textForegroundColour);
+
+            var textBackgroundColour = Color.FromName(settings.TextBackgroundColour ?? "Black");
+            textBackgroundConsoleColour = FromColour(textBackgroundColour);
+
+            var playlistForegroundColour = Color.FromName(settings.PlaylistForegroundColour ?? "Yellow");
+            playlistForegroundConsoleColour = FromColour(playlistForegroundColour);
+
+            var playlistBackgroundColour = Color.FromName(settings.PlaylistBackgroundColour ?? "Black");
+            playlistBackgroundConsoleColour = FromColour(playlistBackgroundColour);
+
             Console.Title = "My Media Player";
             Console.Clear();
+
+            Console.ForegroundColor = titleForegroundConsoleColour;
+            Console.BackgroundColor = titleBackgroundConsoleColour;
             Console.WriteLine("My Media Player");
+
+            Console.ForegroundColor = currentSongForegroundConsoleColour;
+            Console.BackgroundColor = currentSongBackgroundConsoleColour;
             Console.WriteLine("Current: none");
             //Console.WriteLine("Progress: 00:00 / 00:00");
-            Console.WriteLine("Volume: 50%");
+
+            Console.ForegroundColor = volumeTextForegroundConsoleColour;
+            Console.BackgroundColor = volumeTextBackgroundConsoleColour;
+            Console.Write("Volume: ");
+            Console.ForegroundColor = volumeForegroundConsoleColour;
+            Console.BackgroundColor = volumeBackgroundConsoleColour;
+            Console.WriteLine("50%");
+
+            Console.ForegroundColor = currentTextForegroundConsoleColour;
+            Console.BackgroundColor = currentTextBackgroundConsoleColour;
             Console.WriteLine("Enter filename:");
             filePath = ReadLineWithTabCompletion(string.Empty);
             AddToPlaylist(filePath);
@@ -67,6 +141,8 @@ namespace mmp
                     ClearPlaylistDisplay();
                     Console.SetCursorPosition(0, 4);
                     ClearLine();
+                    Console.ForegroundColor = currentTextForegroundConsoleColour;
+                    Console.BackgroundColor = currentTextBackgroundConsoleColour;
                     Console.WriteLine("Enter filename:");
                     var initialDirectory = string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetDirectoryName(filePath) ?? ".";
                     var newFilePath = ReadLineWithTabCompletion(initialDirectory);
@@ -80,6 +156,8 @@ namespace mmp
                     ClearPlaylistDisplay();
                     Console.SetCursorPosition(0, 4);
                     ClearLine();
+                    Console.ForegroundColor = currentTextForegroundConsoleColour;
+                    Console.BackgroundColor = currentTextBackgroundConsoleColour;
                     Console.WriteLine("Enter filename:");
                     var initialDirectory = string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetDirectoryName(filePath) ?? ".";
                     var newFilePath = ReadLineWithTabCompletion(initialDirectory);
@@ -167,6 +245,12 @@ namespace mmp
                         waveOut.Dispose();
                         waveOut = null;
 
+                        if (swapped)
+                        {
+                            swapped = false;
+                            DisplayPlaylist();
+                            continue;
+                        }
                         if (RepeatMode == RepeatMode.NoRepeat)
                         {
                             currentTrackIndex++;
@@ -175,7 +259,7 @@ namespace mmp
                         {
                             // Do nothing, replay current track
                         }
-                        else if (RepeatMode == RepeatMode.RepeatPlaylist && currentTrackIndex == playlist.Count-1)
+                        else if (RepeatMode == RepeatMode.RepeatPlaylist && currentTrackIndex == playlist.Count - 1)
                         {
                             currentTrackIndex = 0;
                         }
@@ -274,6 +358,7 @@ namespace mmp
             {
                 currentTrackIndex--;
                 ChangeMusic(playlist[currentTrackIndex]);
+                swapped = true;
             }
         }
 
@@ -283,11 +368,14 @@ namespace mmp
             {
                 currentTrackIndex++;
                 ChangeMusic(playlist[currentTrackIndex]);
+                swapped = true;
             }
         }
 
         static void DisplayCurrentSong()
         {
+            Console.ForegroundColor = currentSongForegroundConsoleColour;
+            Console.BackgroundColor = currentSongBackgroundConsoleColour;
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 1);
             Console.Write($"Current: {currentSong} Repeat: {RepeatMode}".PadRight(Console.WindowWidth));
@@ -299,7 +387,15 @@ namespace mmp
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 2);
             var volumePercentage = (int)(volume * 100);
-            Console.Write($"Volume: {volumePercentage}%".PadRight(Console.WindowWidth));
+            //Console.Write($"Volume: {volumePercentage}%".PadRight(Console.WindowWidth));
+
+            Console.ForegroundColor = volumeTextForegroundConsoleColour;
+            Console.BackgroundColor = volumeTextBackgroundConsoleColour;
+            Console.Write("Volume: ");
+            Console.ForegroundColor = volumeForegroundConsoleColour;
+            Console.BackgroundColor = volumeBackgroundConsoleColour;
+            Console.WriteLine(volumePercentage);
+
             Console.SetCursorPosition(0, currentTop);
         }
 
@@ -330,6 +426,8 @@ namespace mmp
 
         static void DisplayPlaylist()
         {
+            Console.ForegroundColor = playlistForegroundConsoleColour;
+            Console.BackgroundColor = playlistBackgroundConsoleColour;
             ClearPlaylistDisplay();
             Console.SetCursorPosition(0, 6);
 
@@ -355,6 +453,8 @@ namespace mmp
             var suggestions = new List<string>();
             int suggestionIndex = -1;
 
+            Console.ForegroundColor = textForegroundConsoleColour;
+            Console.BackgroundColor = textBackgroundConsoleColour;
             Console.Write(input.ToString());
 
             while (true)
@@ -374,6 +474,7 @@ namespace mmp
                 {
                     if (suggestions.Count == 0)
                     {
+                        //TODO: Handle invalid input, i.e. directory does not exist
                         var prefix = input.ToString();
                         var directory = Path.GetDirectoryName(prefix) ?? ".";
                         var fileName = Path.GetFileName(prefix) ?? string.Empty;
@@ -428,6 +529,16 @@ namespace mmp
                 Console.Write("Progress: 00:00 / 00:00");
             }
             Console.CursorVisible = true;
+        }
+
+        // https://stackoverflow.com/a/29192463/9659
+        static ConsoleColor FromColour(Color c)
+        {
+            int index = (c.R > 128 | c.G > 128 | c.B > 128) ? 8 : 0; // Bright bit
+            index |= (c.R > 64) ? 4 : 0; // Red bit
+            index |= (c.G > 64) ? 2 : 0; // Green bit
+            index |= (c.B > 64) ? 1 : 0; // Blue bit
+            return (System.ConsoleColor)index;
         }
     }
 }
