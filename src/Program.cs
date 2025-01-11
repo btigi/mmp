@@ -477,6 +477,7 @@ namespace mmp
                     trackDisplay = "  " + trackDisplay;
                 }
 
+                Console.SetCursorPosition(0, 6+i);
                 Console.WriteLine(trackDisplay);
             }
         }
