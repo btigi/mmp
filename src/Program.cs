@@ -39,6 +39,8 @@ namespace mmp
         static ConsoleColor playlistForegroundConsoleColour;
         static ConsoleColor playlistBackgroundConsoleColour;
 
+        static readonly Mutex mutex = new Mutex(true, "MMP_260be345-ea01-4ead-8e59-bbc18b9cfd2c");
+
         static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -46,6 +48,20 @@ namespace mmp
             var configuration = builder.Build();
             var settings = new AppSettings();
             configuration.Bind(settings);
+
+            if (!settings.AllowMultipleInstances)
+            {
+                if (mutex.WaitOne(TimeSpan.Zero, true))
+                {
+                    mutex.ReleaseMutex();
+                }
+                else
+                {
+                    Console.WriteLine("AllowMultipleInstances is set to false and another instance is already running.");
+                    Console.WriteLine("Exiting application");
+                    return;
+                }
+            }
 
             var titleForegroundColour = Color.FromName(settings.TitleForegroundColour ?? "Red");
             var titleForegroundConsoleColour = FromColour(titleForegroundColour);
