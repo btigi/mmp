@@ -412,7 +412,7 @@ namespace mmp
             Console.BackgroundColor = currentSongBackgroundConsoleColour;
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 1);
-            Console.Write($"Current: {currentSong} Repeat: {RepeatMode}".PadRight(Console.WindowWidth));
+            Console.Write($"Current: {currentSong} Repeat: {RepeatMode}");
             Console.SetCursorPosition(0, currentTop);
         }
 
@@ -421,7 +421,7 @@ namespace mmp
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 2);
             var volumePercentage = (int)(volume * 100);
-            //Console.Write($"Volume: {volumePercentage}%".PadRight(Console.WindowWidth));
+            //Console.Write($"Volume: {volumePercentage}%");
 
             Console.ForegroundColor = volumeTextForegroundConsoleColour;
             Console.BackgroundColor = volumeTextBackgroundConsoleColour;
@@ -477,7 +477,7 @@ namespace mmp
                     trackDisplay = "  " + trackDisplay;
                 }
 
-                Console.WriteLine(trackDisplay.PadRight(Console.WindowWidth));
+                Console.WriteLine(trackDisplay);
             }
         }
 
