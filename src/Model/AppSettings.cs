@@ -28,5 +28,6 @@ namespace mmp.Model
         public string TextBackgroundColour { get; set; }
         public string PlaylistForegroundColour { get; set; }
         public string PlaylistBackgroundColour { get; set; }
+        public float DefaultVolume { get; set; }        
     }
 }

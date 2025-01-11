@@ -104,12 +104,9 @@ namespace mmp
             Console.WriteLine("Current: none");
             //Console.WriteLine("Progress: 00:00 / 00:00");
 
-            Console.ForegroundColor = volumeTextForegroundConsoleColour;
-            Console.BackgroundColor = volumeTextBackgroundConsoleColour;
-            Console.Write("Volume: ");
-            Console.ForegroundColor = volumeForegroundConsoleColour;
-            Console.BackgroundColor = volumeBackgroundConsoleColour;
-            Console.WriteLine("50%");
+            volume = settings.DefaultVolume;
+            Console.WriteLine();
+            DisplayVolume();
 
             if (args.Length > 0)
             {
