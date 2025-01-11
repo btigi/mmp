@@ -1,8 +1,5 @@
 ﻿/*
-Playlist
-  always show
 Progress?
-Starting volume
 When adding music if we specify a directory (or a directory then \* ?) just add all supported files (and sub directories...?)
 */
 
@@ -121,6 +118,8 @@ namespace mmp
                 filePath = ReadLineWithTabCompletion(string.Empty);
                 AddToPlaylist(filePath);
             }
+
+            DisplayPlaylist();
 
             var musicThread = new Thread(PlayMusic);
             musicThread.Start();
@@ -348,6 +347,7 @@ namespace mmp
                     playlist.Add(newFilePath);
                 }
             }
+            DisplayPlaylist();
         }
 
         static void ClearPlaylist()
