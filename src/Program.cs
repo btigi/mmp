@@ -412,7 +412,7 @@ namespace mmp
             Console.BackgroundColor = currentSongBackgroundConsoleColour;
             var currentTop = Console.CursorTop;
             Console.SetCursorPosition(0, 1);
-            Console.Write($"Current: {currentSong} Repeat: {RepeatMode}");
+            Console.Write($"Current: {currentSong} Repeat: {RepeatMode}".PadRight(Console.WindowWidth));
             Console.SetCursorPosition(0, currentTop);
         }
 
