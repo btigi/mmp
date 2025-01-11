@@ -3,7 +3,6 @@ Playlist
   always show
 Progress?
 Starting volume
-Handles args to play passed in music
 When adding music if we specify a directory (or a directory then \* ?) just add all supported files (and sub directories...?)
 */
 
@@ -112,11 +111,19 @@ namespace mmp
             Console.BackgroundColor = volumeBackgroundConsoleColour;
             Console.WriteLine("50%");
 
-            Console.ForegroundColor = currentTextForegroundConsoleColour;
-            Console.BackgroundColor = currentTextBackgroundConsoleColour;
-            Console.WriteLine("Enter filename:");
-            filePath = ReadLineWithTabCompletion(string.Empty);
-            AddToPlaylist(filePath);
+            if (args.Length > 0)
+            {
+                AddToPlaylist(args[0]);
+                StartMusic();
+            }
+            else
+            {
+                Console.ForegroundColor = currentTextForegroundConsoleColour;
+                Console.BackgroundColor = currentTextBackgroundConsoleColour;
+                Console.WriteLine("Enter filename:");
+                filePath = ReadLineWithTabCompletion(string.Empty);
+                AddToPlaylist(filePath);
+            }
 
             var musicThread = new Thread(PlayMusic);
             musicThread.Start();
