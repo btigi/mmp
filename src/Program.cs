@@ -1,12 +1,12 @@
 ﻿/*
-Progress?
-When adding music if we specify a directory (or a directory then \* ?) just add all supported files (and sub directories...?)
+Show playback progress?
 */
 
 using Microsoft.Extensions.Configuration;
 using mmp.Model;
 using NAudio.Wave;
 using System.Drawing;
+using System.IO.Enumeration;
 using System.Text;
 
 namespace mmp
@@ -361,6 +361,20 @@ namespace mmp
                 if (Path.GetExtension(newFilePath) == ".mp3" || Path.GetExtension(newFilePath) == ".flac")
                 {
                     playlist.Add(newFilePath);
+                }
+            }
+            else
+            {
+                if (newFilePath.EndsWith('*'))
+                {
+                    var includeSubDirectories = newFilePath.EndsWith("**");
+                    string[] supportedFileTypes = { ".mp3", ".flac" };
+                    var files = Directory.EnumerateFiles(newFilePath.TrimEnd('*'), "*", includeSubDirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                                    .Where(fileName => supportedFileTypes.Any(pattern => FileSystemName.MatchesSimpleExpression($"*{pattern}", fileName)));
+                    foreach (var file in files)
+                    {
+                        playlist.Add(file);
+                    }
                 }
             }
             DisplayPlaylist();
